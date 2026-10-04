@@ -1,0 +1,21 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.8.2
+      - run: deno fmt --check
+      - run: deno lint
+      - run: deno check src/main.ts src/tests/**/*.ts
+      - run: deno test --allow-env --allow-read --allow-net=127.0.0.1,localhost --coverage=coverage
+      - run: deno coverage coverage --lcov --output=coverage/lcov.info
+      - run: deno task openapi
+      - run: git diff --exit-code docs/openapi.json
+      - run: deno info src/main.ts
